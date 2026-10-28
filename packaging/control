@@ -1,0 +1,11 @@
+Package: com.claw.trumpgogo
+Name: TrumpGoGo
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Pseudo-3D endless runner for jailbroken iPhones. Lean the phone to steer, tap to jump over boulders, grab coin lines. English HUD, no dependencies.
+Maintainer: Claw <claw@localhost>
+Author: Claw
+Section: Games
+Priority: optional
+Depends: firmware (>= 7.0)
+Homepage: https://localhost/iphone4-trumpgogo

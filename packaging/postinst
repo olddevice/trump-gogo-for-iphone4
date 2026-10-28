@@ -1,0 +1,44 @@
+#!/bin/sh
+# TrumpGoGo postinst — fix permissions, register the icon, respring.
+set -e
+
+APP=/Applications/TrumpGoGo.app
+chown -R root:wheel "$APP" 2>/dev/null || true
+chmod -R 755 "$APP" 2>/dev/null || true
+
+# uicache refuses to run as root ("cannot open cache file. incorrect user?") --
+# it must run as mobile, and iOS 7 has no su/sudo. Fall back to a one-shot
+# LaunchDaemon with UserName=mobile, then remove it again.
+refresh_icons() {
+    [ -x /usr/bin/uicache ] || return 0
+    if command -v su >/dev/null 2>&1; then
+        su mobile -c uicache >/dev/null 2>&1 && return 0
+    fi
+    PLIST=/Library/LaunchDaemons/com.claw.uicache.plist
+    cat > "$PLIST" <<'PLISTEOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key><string>com.claw.uicache</string>
+	<key>ProgramArguments</key><array><string>/usr/bin/uicache</string></array>
+	<key>UserName</key><string>mobile</string>
+	<key>RunAtLoad</key><true/>
+	<key>KeepAlive</key><false/>
+	<key>StandardOutPath</key><string>/tmp/uicache.out</string>
+	<key>StandardErrorPath</key><string>/tmp/uicache.out</string>
+</dict>
+</plist>
+PLISTEOF
+    launchctl load -w "$PLIST" >/dev/null 2>&1 || true
+    sleep 4
+    launchctl unload "$PLIST" >/dev/null 2>&1 || true
+    rm -f "$PLIST"
+    return 0
+}
+
+refresh_icons || true
+
+# SpringBoard needs a restart to draw the new icon.
+( sleep 1; killall -9 SpringBoard ) >/dev/null 2>&1 &
+exit 0
