@@ -346,3 +346,5 @@ repo therefore lives in a pure-C probe, not in the app.
 
 None of these are about the game; all of them cost more time than the game's
 trickiest maths.
+
+![demo](output.gif)
